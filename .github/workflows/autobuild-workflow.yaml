@@ -37,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: HideAndScript-Windows
-          path: "~/AppData/Roaming/local/bin/HideAndScript"
+          path: "~/AppData/Roaming/local/bin/HideAndScript.exe"

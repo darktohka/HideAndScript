@@ -17,8 +17,10 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.Bits as DB
 import qualified Data.Vector.Storable as V
 import qualified Utils as U
-import Codec.Picture (savePngImage)
 
+-- Reads image data from a file.
+-- If the image couldn't be read, a Nothing monad is returned.
+-- WARNING! This function automatically converts all image data to RGBA8.
 readImageFromFile :: FilePath -> IO (Maybe (CP.Image CP.PixelRGBA8))
 readImageFromFile filename = do
     image <- CP.readImage filename
@@ -27,6 +29,10 @@ readImageFromFile filename = do
       Left err -> return Nothing
       Right img -> return $ Just $ CP.convertRGBA8 img
 
+-- Decodes a ByteString from an RGBA8 image.
+-- This works by concatenating all pixel LSB values. The alpha value is left as-is.
+-- The alpha value must not be modified, as editing the alpha value can lead to information disclosure.
+-- TODO: Replace with a more efficient version
 decodeStringFromImage :: CP.Image CP.PixelRGBA8 -> BL.ByteString
 decodeStringFromImage image@CP.Image {..} = BTS.realizeBitStringLazy (BTS.fromList (decodeBitsFromImage 0 0 []))
     where
@@ -39,9 +45,15 @@ decodeStringFromImage image@CP.Image {..} = BTS.realizeBitStringLazy (BTS.fromLi
                 where
                     (CP.PixelRGBA8 r g b _) = CP.pixelAt image width height
 
+-- Calculates the bandwidth that a given RGBA8 image can hide, in bytes.
+-- Each pixel can hide 3 bits of information (R, G, B).
+-- Each byte consists of 8 bits.
 calculateBandwidth :: Integral a => a -> a -> a
 calculateBandwidth imageWidth imageHeight = (imageWidth * imageHeight * 3) `div` 8
 
+-- Actually encodes a ByteString into an RGBA8 image.
+-- This works by creating a new, mutable image with no image data, then copying over pixel data pixel-by-pixel.
+-- This is an unsafe operation (the bandwidth might not be enough to store the data) so this function is not exported.
 actualEncodeStringIntoImage :: CP.Image CP.PixelRGBA8 -> BS.ByteString -> CP.Image CP.PixelRGBA8
 actualEncodeStringIntoImage img@CP.Image {..} hiddenContent = ST.runST $ do
   mutableImage <- CPT.newMutableImage imageWidth imageHeight
@@ -62,6 +74,8 @@ actualEncodeStringIntoImage img@CP.Image {..} hiddenContent = ST.runST $ do
 
   writePixelAt 0 0 0
 
+-- Encodes a ByteString into an RGBA8 image.
+-- The image might not have enough bandwidth to store the data. In this case, a Nothing monad will be returned.
 encodeStringIntoImage :: CP.Image CP.PixelRGBA8 -> BS.ByteString -> Maybe (CP.Image CP.PixelRGBA8)
 encodeStringIntoImage img@CP.Image {..} hiddenContent = do
   let bandwidth = calculateBandwidth imageWidth imageHeight
@@ -70,11 +84,15 @@ encodeStringIntoImage img@CP.Image {..} hiddenContent = do
       True -> Just (actualEncodeStringIntoImage img hiddenContent)
       False -> Nothing
 
+-- Actually saves a ByteString into a hidden RGBA8 image.
+-- This is an unsafe operation (the bandwidth might not be enough to store the data) so this function is not exported.
 actualSaveHiddenImage :: Maybe (CP.Image CP.PixelRGBA8) -> FilePath -> IO Bool
 actualSaveHiddenImage (Just image) outputFilename = do
     CP.savePngImage outputFilename (CP.ImageRGBA8 image)
     return True
 actualSaveHiddenImage Nothing _ = return False
 
+-- Saves a ByteString into a hidden RGBA8 image.
+-- The image might not have enough bandwidth to store the data. In this case, a Nothing monad will be returned.
 saveHiddenImage :: (CP.Image CP.PixelRGBA8) -> BS.ByteString -> FilePath -> IO Bool
 saveHiddenImage image hiddenContent outputFilename = actualSaveHiddenImage (encodeStringIntoImage image hiddenContent) outputFilename

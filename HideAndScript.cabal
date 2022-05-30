@@ -6,7 +6,7 @@ description:    Please see the README on GitHub at <https://github.com/darktohka
 homepage:       https://github.com/darktohka/HideAndScript#readme
 bug-reports:    https://github.com/darktohka/HideAndScript/issues
 author:         Derzsi Dániel
-maintainer:     example@example.com
+maintainer:     daniel@tohka.us
 copyright:      2022 Derzsi Dániel
 license:        BSD3
 license-file:   LICENSE
@@ -65,6 +65,8 @@ executable HideAndScript
   hs-source-dirs:
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  if os(windows)
+    ghc-options: -optl-mwindows
   build-depends:
       JuicyPixels
     , HideAndScript
