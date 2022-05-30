@@ -41,7 +41,7 @@ encryptFile curveKey nonce finalData = finalHeader
     where
         -- First, compress the data
         compressedLazyData = Z.compressWith Z.defaultCompressParams { Z.compressLevel = Z.bestCompression } finalData
-        compressedData = BS.toStrict compressedLazyData
+        compressedData = BL.toStrict compressedLazyData
 
         -- Second, generate the XSalsa20 key using HKDF SHA256,
         -- then encrypt the compressed data
