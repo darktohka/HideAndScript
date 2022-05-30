@@ -36,6 +36,7 @@ dependencies:
   - typed-process
   - open-browser
   - filepath
+  - random
 
 library:
   source-dirs: src
