@@ -34,14 +34,14 @@ readImageFromFile filename = do
 -- The alpha value must not be modified, as editing the alpha value can lead to information disclosure.
 -- TODO: Replace with a more efficient version
 decodeStringFromImage :: CP.Image CP.PixelRGBA8 -> BL.ByteString
-decodeStringFromImage image@CP.Image {..} = BTS.realizeBitStringLazy (BTS.fromList (decodeBitsFromImage 0 0 []))
+decodeStringFromImage image@CP.Image {..} = BTS.realizeBitStringLazy (BTS.fromList (reverse (decodeBitsFromImage 0 0 [])))
     where
         (CP.Image imageWidth imageHeight imageData) = image
 
         decodeBitsFromImage width height res
             | width >= imageWidth   = decodeBitsFromImage 0 (height + 1) res
             | height >= imageHeight = res
-            | otherwise = decodeBitsFromImage (width + 1) height (res ++ [DB.testBit r 0, DB.testBit g 0, DB.testBit b 0])
+            | otherwise = decodeBitsFromImage (width + 1) height ([DB.testBit b 0, DB.testBit g 0, DB.testBit r 0] ++ res)
                 where
                     (CP.PixelRGBA8 r g b _) = CP.pixelAt image width height
 
