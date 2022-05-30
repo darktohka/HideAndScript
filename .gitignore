@@ -1,0 +1,8 @@
+.stack-work/
+__pycache__/
+
+*.png
+*.py
+*.secret
+
+*.py[c|o]

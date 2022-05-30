@@ -1,0 +1,87 @@
+cabal-version: 1.12
+
+name:           HideAndScript
+version:        1.0.0.0
+description:    Please see the README on GitHub at <https://github.com/darktohka/HideAndScript#readme>
+homepage:       https://github.com/darktohka/HideAndScript#readme
+bug-reports:    https://github.com/darktohka/HideAndScript/issues
+author:         Derzsi Dániel
+maintainer:     example@example.com
+copyright:      2022 Derzsi Dániel
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/darktohka/HideAndScript
+
+library
+  exposed-modules:
+      GUI.FolderPrompt
+      GUI.ImagePrompt
+      GUI.MessageBox
+      GUI.PythonPrompt
+      ImgCrypto.CryptoFile
+      ImgCrypto.Curve25519
+      ImgCrypto.HMAC
+      ImgCrypto.XSalsa
+      PNG.Chunks
+      PNG.Constants
+      PNG.Container
+      PythonInterop
+      StreamHider
+      Utils
+  other-modules:
+      Paths_HideAndScript
+  hs-source-dirs:
+      src
+  build-depends:
+      JuicyPixels
+    , base >=4.7 && <5
+    , binary
+    , bitstring
+    , bytestring
+    , cryptonite
+    , digest
+    , directory
+    , filepath
+    , memory
+    , open-browser
+    , text
+    , tinyfiledialogs
+    , typed-process
+    , utf8-string
+    , vector
+    , zlib
+  default-language: Haskell2010
+
+executable HideAndScript
+  main-is: Main.hs
+  other-modules:
+      Paths_HideAndScript
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      JuicyPixels
+    , HideAndScript
+    , base >=4.7 && <5
+    , binary
+    , bitstring
+    , bytestring
+    , cryptonite
+    , digest
+    , directory
+    , filepath
+    , memory
+    , open-browser
+    , text
+    , tinyfiledialogs
+    , typed-process
+    , utf8-string
+    , vector
+    , zlib
+  default-language: Haskell2010

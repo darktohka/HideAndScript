@@ -1,0 +1,52 @@
+name: HideAndScript
+version: 1.0.0.0
+github: "darktohka/HideAndScript"
+license: BSD3
+author: "Derzsi Dániel"
+maintainer: "daniel@tohka.us"
+copyright: "2022 Derzsi Dániel"
+
+extra-source-files:
+  - README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description: Please see the README on GitHub at <https://github.com/darktohka/HideAndScript#readme>
+
+dependencies:
+  - base >= 4.7 && < 5
+  - zlib
+  - binary
+  - bytestring
+  - utf8-string
+  - digest
+  - JuicyPixels
+  - cryptonite
+  - tinyfiledialogs
+  - directory
+  - text
+  - vector
+  - bitstring
+  - memory
+  - typed-process
+  - open-browser
+  - filepath
+
+library:
+  source-dirs: src
+
+executables:
+  HideAndScript:
+    main: Main.hs
+    source-dirs: app
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - HideAndScript

@@ -1,0 +1,40 @@
+name: Autobuild HideAndScript
+
+on: [push, workflow_dispatch, repository_dispatch]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
+    name: Build for ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Haskell
+        uses: haskell/actions/setup@v2
+        with:
+          enable-stack: true
+      - name: Build app
+        run: stack build --copy-bins
+      - name: Upload Linux artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v3
+        with:
+          name: HideAndScript-Linux
+          path: "~/.local/bin/HideAndScript"
+      - name: Upload macOS artifact
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v3
+        with:
+          name: HideAndScript-MacOS
+          path: "~/.local/bin/HideAndScript"
+      - name: Upload Windows artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v3
+        with:
+          name: HideAndScript-Windows
+          path: "~/AppData/Roaming/local/bin/HideAndScript"
