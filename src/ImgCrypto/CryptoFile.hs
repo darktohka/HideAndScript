@@ -1,5 +1,6 @@
 module ImgCrypto.CryptoFile (
     FileHeader,
+    Password,
     encryptFile,
     decryptFile
 ) where
@@ -22,6 +23,9 @@ import ImgCrypto.XSalsa
 
 -- Data types
 
+-- The password that can be used for encryption and decryption
+type Password = BS.ByteString
+
 -- Each file header contains the length of the cryptstring,
 -- the XSalsa20 nonce, the HMAC digest and the cryptstring itself
 data FileHeader = FileHeader {
@@ -36,8 +40,8 @@ data FileHeader = FileHeader {
 -- Encrypts an unencrypted ByteString into a XSalsa20 crypttext.
 -- The result of this function is a well-defined FileHeader that
 -- can be saved into an image.
-encryptFile :: CV.SecretKey -> XSalsaNonce -> BL.ByteString -> BS.ByteString
-encryptFile curveKey nonce finalData = finalHeader
+encryptFile :: CV.SecretKey -> XSalsaNonce -> Password -> BL.ByteString -> BS.ByteString
+encryptFile curveKey nonce password finalData = finalHeader
     where
         -- First, compress the data
         compressedLazyData = Z.compressWith Z.defaultCompressParams { Z.compressLevel = Z.bestCompression } finalData
@@ -45,7 +49,7 @@ encryptFile curveKey nonce finalData = finalHeader
 
         -- Second, generate the XSalsa20 key using HKDF SHA256,
         -- then encrypt the compressed data
-        salsaKey = createXSalsa20Key nonce curveKey
+        salsaKey = createXSalsa20Key nonce password curveKey
         salsaContent = encryptXSalsa20 salsaKey nonce compressedData
 
         -- Third, create an HMAC key from hashing the salsa key and nonce
@@ -78,8 +82,8 @@ decodeFileHeader fileContent = BG.runGet getFileHeader fileContent
 -- Decrypts an encrypted XSalsa20 crypttext into an unencrypted ByteString.
 -- This function can only be used on crypttexts containing the well-defined FileHeader!
 -- The result of this function is a well-defined FileHeader that can be saved into an image.
-decryptFile :: CV.SecretKey -> BL.ByteString -> Maybe BL.ByteString
-decryptFile curveKey finalHeader = finalResult
+decryptFile :: CV.SecretKey -> Password -> BL.ByteString -> Maybe BL.ByteString
+decryptFile curveKey password finalHeader = finalResult
     where
         -- First, extract the data from the header.
         (FileHeader length nonceContent hmacContent remainingContent) = decodeFileHeader finalHeader
@@ -87,7 +91,7 @@ decryptFile curveKey finalHeader = finalResult
 
         -- Second, extract the XSalsa20 crypttext and rederive the key using the nonce in the header.
         salsaContent = BL.toStrict $ BL.take (fromIntegral length) remainingContent
-        salsaKey = createXSalsa20Key nonceContent curveKey
+        salsaKey = createXSalsa20Key nonceContent password curveKey
 
         -- Third, rederive the HMAC key using the XSalsa20 key and the nonce.
         hmacKey = createHMACKey salsaKey nonceContent

@@ -39,8 +39,11 @@ startDecrypt (Just image) (Just curveKey) = do
     -- Decode the bytestring from the image...
     let decoded = decodeStringFromImage image
 
+    -- Request password from user
+    password <- askPassword "Password" "Please enter the decryption password, if any:"
+
     -- Attempt to decryrpt the content...
-    let decodedContent = decryptFile curveKey decoded
+    let decodedContent = decryptFile curveKey password decoded
 
     -- Decide what to do next.
     continueDecrypt image curveKey decodedContent
@@ -69,7 +72,7 @@ continueDecrypt image curveKey (Just decodedContent) = do
     case success of
         True -> showSuccess "The program executed successfully!"
         False -> showError "The program failed with an error. Try again?"
-continueDecrypt image curveKey Nothing = showError "This image does not contain any decryptable data!"
+continueDecrypt image curveKey Nothing = showError "This image does not contain any data that you could decrypt!"
 
 -- ENCRYPTION
 
@@ -95,9 +98,12 @@ promptEncrypt = do
 -- Starts the image encryption process.
 -- We have to check if the image and the key has been loaded properly.
 startEncrypt (Just image) script saveFile (Just curveKey) = do
+    -- Request password from user
+    password <- askPassword "Password" "Please enter the encryption password, if any:"
+
     -- Create a new nonce, and encrypt the content!
     nonce <- createXSalsa20Nonce
-    let salsaContent = encryptFile curveKey nonce script
+    let salsaContent = encryptFile curveKey nonce password script
 
     -- Save the encrypted content into the file!
     saveHiddenImage image salsaContent saveFile

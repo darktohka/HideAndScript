@@ -3,11 +3,16 @@
 module GUI.MessageBox (
     showError,
     showSuccess,
-    showQuestion
+    showQuestion,
+    askPassword
 ) where
 
 import qualified Graphics.UI.TinyFileDialogs as TF
 import qualified Data.Text as T
+import qualified Data.ByteString as BS
+import Data.Text.Encoding as TSE
+
+import ImgCrypto.CryptoFile ( Password )
 
 -- Shows a message box with an error icon and a custom message.
 -- This function can only be used inside an IO Monad.
@@ -35,3 +40,13 @@ showQuestion title message = do
     case value of
         TF.YN_Yes -> return True
         _ -> return False
+
+-- Shows an input dialog asking the user for a password
+-- This function can only be used inside an IO Monad.
+askPassword :: String -> String -> IO Password
+askPassword title message = do
+    value <- TF.inputBox (T.pack title) (T.pack message) Nothing
+
+    case value of
+        Just t -> return $ TSE.encodeUtf8 t
+        Nothing -> return BS.empty

@@ -41,10 +41,10 @@ xSalsaRounds = 20
 createXSalsa20Nonce :: IO XSalsaNonce
 createXSalsa20Nonce = CR.getRandomBytes xSalsaNonceLength
 
--- Creates an XSalsa20 key from a nonce and a Curve25519 secret key.
+-- Creates an XSalsa20 key from a nonce, password and a Curve25519 secret key.
 -- This is made possible by the HKDF algorithm used.
-createXSalsa20Key :: XSalsaNonce -> CV.SecretKey -> XSalsaKey
-createXSalsa20Key nonce key = HK.extract nonce key
+createXSalsa20Key :: XSalsaNonce -> BS.ByteString -> CV.SecretKey -> XSalsaKey
+createXSalsa20Key nonce password key = HK.extract (BS.concat [nonce, password]) key
 
 -- Encrypts a ByteString using a XSalsa20 key and nonce.
 -- WARNING! Nonces must never be reused!
